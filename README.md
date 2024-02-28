@@ -4,19 +4,32 @@ This repository contains a collection of utility macros for working with Datafor
 
 ## Installation
 
-To use the macros in this repository, you will need to add the following to your `packages.json` file:
+To use the macros in this repository, you will need to add this repository to the [dependencies](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#dependencies) in your `packages.json` file:
 
 ```json
 {
-  "packages": [
-    {
-      "gitRef": "main",
-      "name": "qbi-dataform-utils",
-      "registry": "github",
-      "subdirectory": "macros"
+    "name": "jaffle_shop",
+    "dependencies": {
+        "@dataform/core": "2.4.2",
+        "qbi-dataform-utils": "<package_url_or_local_path>"
     }
-  ]
 }
+```
+
+Because this repository is not published to the npm registry, you will need to specify the URL of the Github repository. And also, because the Github repository is private and requires authentication, you will need to specify the authentication method to use. Basically, there are three ways to authenticate with Github:
+
+1. using a personal access token (`https://<token>@github.com/github.com/quickbi/qbi-dataform-utils.git`)
+2. using SSH (`git+ssh://git@github.com:quickbi/qbi-dataform-utils.git`), or
+3. username+password (`git://github.com/quickbi/qbi-dataform-utils.git`).
+
+Additionally, you can install the package from a local directory (`file:../qbi-dataform-utils`).
+
+NOTE: These methods only work locally and not on Dataform Cloud. For Dataform Cloud, you will need a private NPM package. For more information, see https://cloud.google.com/dataform/docs/private-packages.
+
+Once you have added the package to your `packages.json` file, you can install the package by running the following command:
+
+```bash
+dataform install
 ```
 
 ## Macros
@@ -38,8 +51,12 @@ config {
     }
 }
 
+js {
+  const { deduplicate } = require("qbi-dataform-utils");
+}
+
 -- Deduplicate the stg_users table by user_id, keeping the most recent record
-${functions.deduplicate(ref('stg_users'), 'user_id', 'loaded_at desc')}
+${deduplicate(ref('stg_users'), 'user_id', 'loaded_at desc')}
 ```
 
 ```sql
@@ -53,6 +70,10 @@ config {
     }
 }
 
+js {
+  const { deduplicate } = require("qbi-dataform-utils");
+}
+
 with users as (
   select
     *
@@ -61,7 +82,7 @@ with users as (
 
 -- Deduplicate the users CTE by user_id, keeping the most recent record
 deduplicated as (
-  ${functions.deduplicate('users', 'user_id', 'loaded_at desc')}
+  ${deduplicate('users', 'user_id', 'loaded_at desc')}
 )
 
 select
@@ -86,15 +107,19 @@ config {
     }
 }
 
+js {
+  const { generate_surrogate_key } = require("qbi-dataform-utils");
+}
+
 select
-  ${functions.generate_surrogate_key(['exchange_rate', 'currency'])} as exchange_rate_id,
+  ${generate_surrogate_key(['exchange_rate', 'currency'])} as exchange_rate_id,
   *
 from ${ref('raw_exchange_rates')}
 ```
 
 ### union_relations
 
-This macro is used to union two or more relations together. It is useful when you have multiple relations that have the same schema and you want to combine them into a single relation. The relations to union are specified as a map, where the keys are arbitrary names and the values are the relations to union. The macro will automatically add `_dataform_source_key` and `_dataform_source_relation` columns to the output relation to indicate which relation the row came from. If the relations have different schemas, you need to specify the fields to union on.
+This macro is used to union two or more relations (or CTEs) together. It is useful when you have multiple relations that have the same schema and you want to combine them into a single relation. The relations to union are specified as a map, where the keys are arbitrary names and the values are the relations to union. The macro will automatically add `_dataform_source_key` and `_dataform_source_relation` columns to the output relation to indicate which relation the row came from. If the relations have different schemas, you need to specify the fields to union on.
 
 Usage:
 
@@ -103,9 +128,13 @@ config {
     type: 'table',
 }
 
+js {
+  const { union_relations } = require("qbi-dataform-utils");
+}
+
 with unioned as (
     ${
-        functions.union_relations(
+        union_relations(
             {
                 'usd': ref('stg_exchange_rates_usd'),
                 'eur': ref('stg_exchange_rates_eur')
@@ -121,3 +150,43 @@ select
 from unioned
 ```
 
+```sql
+config {
+    type: 'table',
+}
+
+js {
+  const { union_relations } = require("qbi-dataform-utils");
+}
+
+with usd as (
+    select
+        *,
+        'usd' as target_currency
+    from ${ref('stg_exchange_rates_usd')}
+),
+
+eur as (
+    select
+        *,
+        'usd' as target_currency
+    from ${ref('stg_exchange_rates_eur')}
+),
+
+unioned as (
+    ${
+        union_relations(
+            {
+                'usd': 'usd',
+                'eur': 'eur'
+            },
+            ['date', 'exchange_rate', 'target_currency'],
+            'currency'
+        )
+    }
+)
+
+select
+    * except (_dataform_source_relation)
+from unioned
+```
