@@ -24,10 +24,10 @@ function generate_surrogate_key(fields, default_null_value='_qbi_dataform_utils_
     return `to_hex(md5(${sql}))`;
 }
 
-function union_relations(relations_dict, fields=['*'], key_column_name='_dataform_source_key', source_column_name='_dataform_source_relation') {
+function union_relations(relations_dict, fields=['*'], key_column_name='_dataform_source_key', value_column_name='_dataform_source_value') {
     var select_statements = [];
     for (var key in relations_dict) {
-        select_statements.push(`select ${fields.join(', ')}, '${key}' as ${key_column_name}, '${relations_dict[key]}' as ${source_column_name} from ${relations_dict[key]}`)
+        select_statements.push(`select ${fields.join(', ')}, '${key}' as ${key_column_name}, '${relations_dict[key]}' as ${value_column_name} from ${relations_dict[key]}`)
     }
     return select_statements.join('\nunion all\n');
 }
