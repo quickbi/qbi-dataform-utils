@@ -38,6 +38,12 @@ dataform install
 
 This macro is used to deduplicate data in a relation or a CTE. It uses the `row_number()` window function to assign a unique row number to each row in the table, and then filters out the rows where the row number is greater than 1.
 
+Arguments:
+
+- `relation` (string): The relations or CTEs to deduplicate.
+- `partition_by` (string): The field or fields to partition by. Multiple fields must be separated by commas.
+- `order_by` (string): The field or fields to order by. Multiple fields must be separated by commas.
+
 Usage:
 
 ```sql
@@ -94,6 +100,11 @@ from deduplicated
 
 This macro is used to generate a hashed surrogate key. Use this macro to generate unique identifiers for tables that do not have a natural key.
 
+Arguments:
+
+- `fields` (array): An array of fields to hash.
+- `_qbi_dataform_utils_surrogate_key_null` (string): The value to use when the fields to hash are null. Default is `_qbi_dataform_utils_surrogate_key_null`.
+
 Usage:
 
 ```sql
@@ -120,6 +131,13 @@ from ${ref('raw_exchange_rates')}
 ### union_relations
 
 This macro is used to union two or more relations (or CTEs) together. It is useful when you have multiple relations that have the same schema and you want to combine them into a single relation. The relations to union are specified as a map, where the keys are arbitrary names and the values are the relations to union. The macro will automatically add `_dataform_source_key` and `_dataform_source_relation` columns to the output relation to indicate which relation the row came from. If the relations have different schemas, you need to specify the fields to union on.
+
+Arguments:
+
+- `relations` (object): A map of relation keys and their corresponding relations or CTEs.
+- `fields` (array): An array of fields to union on. If not specified, the macro will union all fields (i.e., `[*]`).
+- `key_column_name` (string): The name of the column to use for the relation key column. Default is `_dataform_source_key`.
+- `value_column_name` (string): The name of the column to use for the relation value column. Default is `_dataform_source_value`.
 
 Usage:
 
