@@ -103,7 +103,7 @@ This macro is used to generate a hashed surrogate key. Use this macro to generat
 Arguments:
 
 - `fields` (array): An array of fields to hash.
-- `_qbi_dataform_utils_surrogate_key_null` (string): The value to use when the fields to hash are null. Default is `_qbi_dataform_utils_surrogate_key_null`.
+- `default_null_value` (string): The value to use when the fields to hash are null. Default is `_qbi_dataform_utils_surrogate_key_null`.
 
 Usage:
 
