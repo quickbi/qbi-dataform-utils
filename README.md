@@ -190,3 +190,34 @@ select
     * except (_dataform_source_relation)
 from unioned
 ```
+
+
+### union_relations
+
+This macro is used to union two or more relations together. It is useful when you have multiple relations that have the same schema and you want to combine them into a single relation. The relations to union are specified as a map, where the keys are arbitrary names and the values are the relations to union. The macro will automatically add `_dataform_source_key` and `_dataform_source_relation` columns to the output relation to indicate which relation the row came from. If the relations have different schemas, you need to specify the fields to union on.
+
+Usage:
+
+```sql
+config {
+    type: 'table',
+}
+
+with unioned as (
+    ${
+        functions.union_relations(
+            {
+                'usd': ref('stg_exchange_rates_usd'),
+                'eur': ref('stg_exchange_rates_eur')
+            },
+            ['date', 'exchange_rate'],                  -- Union date and exchange_rate fields only
+            'currency'                                  -- Rename _dataform_source_key to currency
+        )
+    }
+)
+
+select
+    * except (_dataform_source_relation)
+from unioned
+```
+
