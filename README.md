@@ -24,7 +24,7 @@ Because this repository is not published to the npm registry, you will need to s
 
 Additionally, you can install the package from a local directory (`file:../qbi-dataform-utils`).
 
-❗❗ **WARNING: These methods only work locally and not on Dataform Cloud. For Dataform Cloud, you will need a private NPM package. For more information, see https://cloud.google.com/dataform/docs/private-packages.**
+❗❗ **WARNING: These methods only work locally and not on Google Cloud Platform (GCP). For GCP, you will need a private NPM package. For more information, see https://cloud.google.com/dataform/docs/private-packages.**
 
 Once you have added the package to your `packages.json` file, you can install the package by running the following command:
 
