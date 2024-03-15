@@ -1,7 +1,7 @@
 // filename index.js
 // package name qbi-dataform-utils
 
-function deduplicate(relation, partition_by, order_by) {
+function deduplicate({relation, partition_by, order_by} = {}) {
     return `
         select
             *

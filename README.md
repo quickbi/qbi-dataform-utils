@@ -50,7 +50,7 @@ The name of the includes file acts as a namespace for the imported macros. In ot
 
 This macro is used to deduplicate data in a relation or a CTE. It uses the `row_number()` window function to assign a unique row number to each row in the table, and then filters out the rows where the row number is greater than 1.
 
-Arguments:
+The macro takes an object with the following properties:
 
 - `relation` (string): The relations or CTEs to deduplicate.
 - `partition_by` (string): The field or fields to partition by. Multiple fields must be separated by commas.
@@ -70,7 +70,11 @@ config {
 }
 
 -- Deduplicate the stg_users table by user_id, keeping the most recent record
-${qbi_dataform_utils.deduplicate(ref('stg_users'), 'user_id', 'loaded_at desc')}
+${qbi_dataform_utils.deduplicate({
+    relation: ref('stg_users'),
+    partition_by: 'user_id',
+    order_by: 'loaded_at desc'
+})}
 ```
 
 ```sql
@@ -92,7 +96,11 @@ with users as (
 
 -- Deduplicate the users CTE by user_id, keeping the most recent record
 deduplicated as (
-  ${qbi_dataform_utils.deduplicate('users', 'user_id', 'loaded_at desc')}
+  ${qbi_dataform_utils.deduplicate({
+    relation: 'users',
+    partition_by: 'user_id',
+    order_by: 'loaded_at desc'
+  })}
 )
 
 select
