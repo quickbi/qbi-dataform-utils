@@ -132,12 +132,12 @@ from ${ref('raw_exchange_rates')}
 
 This macro is used to union two or more relations (or CTEs) together. It is useful when you have multiple relations that have the same schema and you want to combine them into a single relation. The relations to union are specified as a map, where the keys are arbitrary names and the values are the relations to union. The macro will automatically add `_dataform_source_key` and `_dataform_source_relation` columns to the output relation to indicate which relation the row came from. If the relations have different schemas, you need to specify the fields to union on.
 
-Arguments:
+The macro takes an object with the following properties:
 
 - `relations` (object): A map of relation keys and their corresponding relations or CTEs.
 - `fields` (array): An array of fields to union on. If not specified, the macro will union all fields (i.e., `[*]`).
-- `key_column_name` (string): The name of the column to use for the relation key column. Default is `_dataform_source_key`.
-- `value_column_name` (string): The name of the column to use for the relation value column. Default is `_dataform_source_value`.
+- `key_column_name` (string): The name of the column to use for the source relation key column. Default is `_dataform_source_key`.
+- `value_column_name` (string): The name of the column to use for the source relation value column. Default is `_dataform_source_value`.
 
 Usage:
 
@@ -148,19 +148,19 @@ config {
 
 with unioned as (
     ${
-        qbi_dataform_utils.union_relations(
-            {
+        qbi_dataform_utils.union_relations({
+            relations: {
                 'usd': ref('stg_exchange_rates_usd'),
                 'eur': ref('stg_exchange_rates_eur')
             },
-            ['date', 'exchange_rate'],                  -- Union date and exchange_rate fields only
-            'currency'                                  -- Rename _dataform_source_key to currency
-        )
+            fields: ['date', 'exchange_rate'],                  -- Union date and exchange_rate fields only
+            key_column_name: 'currency'                         -- Rename _dataform_source_key to currency
+        })
     }
 )
 
 select
-    * except (_dataform_source_relation)
+    * except (_dataform_source_value)
 from unioned
 ```
 
