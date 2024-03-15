@@ -50,7 +50,7 @@ The name of the includes file acts as a namespace for the imported macros. In ot
 
 This macro is used to deduplicate data in a relation or a CTE. It uses the `row_number()` window function to assign a unique row number to each row in the table, and then filters out the rows where the row number is greater than 1.
 
-Arguments:
+The macro takes an object with the following properties:
 
 - `relation` (string): The relations or CTEs to deduplicate.
 - `partition_by` (string): The field or fields to partition by. Multiple fields must be separated by commas.
@@ -70,7 +70,11 @@ config {
 }
 
 -- Deduplicate the stg_users table by user_id, keeping the most recent record
-${qbi_dataform_utils.deduplicate(ref('stg_users'), 'user_id', 'loaded_at desc')}
+${qbi_dataform_utils.deduplicate({
+    relation: ref('stg_users'),
+    partition_by: 'user_id',
+    order_by: 'loaded_at desc'
+})}
 ```
 
 ```sql
@@ -92,7 +96,11 @@ with users as (
 
 -- Deduplicate the users CTE by user_id, keeping the most recent record
 deduplicated as (
-  ${qbi_dataform_utils.deduplicate('users', 'user_id', 'loaded_at desc')}
+  ${qbi_dataform_utils.deduplicate({
+    relation: 'users',
+    partition_by: 'user_id',
+    order_by: 'loaded_at desc'
+  })}
 )
 
 select
@@ -132,12 +140,12 @@ from ${ref('raw_exchange_rates')}
 
 This macro is used to union two or more relations (or CTEs) together. It is useful when you have multiple relations that have the same schema and you want to combine them into a single relation. The relations to union are specified as a map, where the keys are arbitrary names and the values are the relations to union. The macro will automatically add `_dataform_source_key` and `_dataform_source_relation` columns to the output relation to indicate which relation the row came from. If the relations have different schemas, you need to specify the fields to union on.
 
-Arguments:
+The macro takes an object with the following properties:
 
 - `relations` (object): A map of relation keys and their corresponding relations or CTEs.
 - `fields` (array): An array of fields to union on. If not specified, the macro will union all fields (i.e., `[*]`).
-- `key_column_name` (string): The name of the column to use for the relation key column. Default is `_dataform_source_key`.
-- `value_column_name` (string): The name of the column to use for the relation value column. Default is `_dataform_source_value`.
+- `key_column_name` (string): The name of the column to use for the source relation key column. Default is `_dataform_source_key`.
+- `value_column_name` (string): The name of the column to use for the source relation value column. Default is `_dataform_source_value`.
 
 Usage:
 
@@ -148,19 +156,19 @@ config {
 
 with unioned as (
     ${
-        qbi_dataform_utils.union_relations(
-            {
+        qbi_dataform_utils.union_relations({
+            relations: {
                 'usd': ref('stg_exchange_rates_usd'),
                 'eur': ref('stg_exchange_rates_eur')
             },
-            ['date', 'exchange_rate'],                  -- Union date and exchange_rate fields only
-            'currency'                                  -- Rename _dataform_source_key to currency
-        )
+            fields: ['date', 'exchange_rate'],                  -- Union date and exchange_rate fields only
+            key_column_name: 'currency'                         -- Rename _dataform_source_key to currency
+        })
     }
 )
 
 select
-    * except (_dataform_source_relation)
+    * except (_dataform_source_value)
 from unioned
 ```
 
@@ -185,18 +193,18 @@ eur as (
 
 unioned as (
     ${
-        qbi_dataform_utils.union_relations(
-            {
+        qbi_dataform_utils.union_relations({
+            relations: {
                 'usd': 'usd',
                 'eur': 'eur'
             },
-            ['date', 'exchange_rate', 'target_currency'],
-            'currency'
-        )
+            fields: ['date', 'exchange_rate', 'target_currency'],
+            key_column_name: 'currency'
+        })
     }
 )
 
 select
-    * except (_dataform_source_relation)
+    * except (_dataform_source_value)
 from unioned
 ```
