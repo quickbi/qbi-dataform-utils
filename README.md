@@ -10,21 +10,23 @@ To use the macros in this repository, you will need to add this repository to th
 {
     "name": "jaffle_shop",
     "dependencies": {
-        "@dataform/core": "2.4.2",
-        "qbi-dataform-utils": "<package_url_or_local_path>"
+        "@dataform/core": "2.9",
+        "qbi-dataform-utils": "https://github.com/quickbi/qbi-dataform-utils/archive/main.tar.gz"
     }
 }
 ```
 
-Because this repository is not published to the npm registry, you will need to specify the URL of the Github repository. And also, because the Github repository is private and requires authentication, you will need to specify the authentication method to use. Basically, there are three ways to authenticate with Github:
+To use a specific version of the package, you can specify the version tag or commit hash in the URL:
 
-1. using a personal access token (`https://<token>@github.com/github.com/quickbi/qbi-dataform-utils.git`)
-2. using SSH (`git+ssh://git@github.com:quickbi/qbi-dataform-utils.git`), or
-3. username+password (`git://github.com/quickbi/qbi-dataform-utils.git`).
-
-Additionally, you can install the package from a local directory (`file:../qbi-dataform-utils`).
-
-❗❗ **WARNING: These methods only work locally and not on Google Cloud Platform (GCP). For GCP, you will need a private NPM package. For more information, see https://cloud.google.com/dataform/docs/private-packages.**
+```json
+{
+    "name": "jaffle_shop",
+    "dependencies": {
+        "@dataform/core": "2.9",
+        "qbi-dataform-utils": "https://github.com/quickbi/qbi-dataform-utils/archive/v0.1.0.tar.gz"
+    }
+}
+```
 
 Once you have added the package to your `packages.json` file, you can install the package by running the following command:
 
