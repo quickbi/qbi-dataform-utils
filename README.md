@@ -34,6 +34,16 @@ dataform install
 
 ## Macros
 
+To use the macros in this repository, you will need to import them into your Dataform project. To import, add a `includes/qbi_dataform_utils.js` file to your Dataform project and import the macros into the file. For example:
+
+```javascript
+// includes/qbi_dataform_utils.js
+const { deduplicate, generate_surrogate_key, union_relations } = require("qbi-dataform-utils");
+module.exports = { deduplicate, generate_surrogate_key, union_relations };
+```
+
+The name of the includes file acts as a namespace for the imported macros. In other words, if the includes file is named `qbi_dataform_utils.js`, you can refer to the imported macros using the `${qbi_dataform_utils.<macro_name>}` syntax. For example, to refer to the `deduplicate` macro, use the `${qbi_dataform_utils.deduplicate(<relation>, <partition_by>, <order_by>)}` syntax.
+
 ### deduplicate
 
 This macro is used to deduplicate data in a relation or a CTE. It uses the `row_number()` window function to assign a unique row number to each row in the table, and then filters out the rows where the row number is greater than 1.
@@ -57,12 +67,8 @@ config {
     }
 }
 
-js {
-  const { deduplicate } = require("qbi-dataform-utils");
-}
-
 -- Deduplicate the stg_users table by user_id, keeping the most recent record
-${deduplicate(ref('stg_users'), 'user_id', 'loaded_at desc')}
+${qbi_dataform_utils.deduplicate(ref('stg_users'), 'user_id', 'loaded_at desc')}
 ```
 
 ```sql
@@ -76,10 +82,6 @@ config {
     }
 }
 
-js {
-  const { deduplicate } = require("qbi-dataform-utils");
-}
-
 with users as (
   select
     *
@@ -88,7 +90,7 @@ with users as (
 
 -- Deduplicate the users CTE by user_id, keeping the most recent record
 deduplicated as (
-  ${deduplicate('users', 'user_id', 'loaded_at desc')}
+  ${qbi_dataform_utils.deduplicate('users', 'user_id', 'loaded_at desc')}
 )
 
 select
@@ -118,12 +120,8 @@ config {
     }
 }
 
-js {
-  const { generate_surrogate_key } = require("qbi-dataform-utils");
-}
-
 select
-  ${generate_surrogate_key(['exchange_rate', 'currency'])} as exchange_rate_id,
+  ${qbi_dataform_utils.generate_surrogate_key(['exchange_rate', 'currency'])} as exchange_rate_id,
   *
 from ${ref('raw_exchange_rates')}
 ```
@@ -146,13 +144,9 @@ config {
     type: 'table',
 }
 
-js {
-  const { union_relations } = require("qbi-dataform-utils");
-}
-
 with unioned as (
     ${
-        union_relations(
+        qbi_dataform_utils.union_relations(
             {
                 'usd': ref('stg_exchange_rates_usd'),
                 'eur': ref('stg_exchange_rates_eur')
@@ -173,10 +167,6 @@ config {
     type: 'table',
 }
 
-js {
-  const { union_relations } = require("qbi-dataform-utils");
-}
-
 with usd as (
     select
         *,
@@ -193,7 +183,7 @@ eur as (
 
 unioned as (
     ${
-        union_relations(
+        qbi_dataform_utils.union_relations(
             {
                 'usd': 'usd',
                 'eur': 'eur'
