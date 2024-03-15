@@ -193,18 +193,18 @@ eur as (
 
 unioned as (
     ${
-        qbi_dataform_utils.union_relations(
-            {
+        qbi_dataform_utils.union_relations({
+            relations: {
                 'usd': 'usd',
                 'eur': 'eur'
             },
-            ['date', 'exchange_rate', 'target_currency'],
-            'currency'
-        )
+            fields: ['date', 'exchange_rate', 'target_currency'],
+            key_column_name: 'currency'
+        })
     }
 )
 
 select
-    * except (_dataform_source_relation)
+    * except (_dataform_source_value)
 from unioned
 ```
